@@ -21,30 +21,29 @@ namespace Spocket\Webhook;
  * @license  Copyright https://en.wikipedia.org/wiki/Copyright
  * @link     no link
  */
-class Data
-{
+class Data {
 
-    private $_table = 'wc_webhooks';
 
-    /**
-     * Return Webook
-     *
-     * @param $topic The Webhook Topic
-     *
-     * @return void
-     */
-    public function findWebhookByTopic( $topic)
-    {
-        global $wpdb;
+	private $_table = 'wc_webhooks';
 
-        $tableName = $wpdb->prefix . $this->_table;
+	/**
+	 * Return Webook
+	 *
+	 * @param $topic The Webhook Topic
+	 *
+	 * @return void
+	 */
+	public function findWebhookByTopic( $topic ) {
+		global $wpdb;
 
-        return $wpdb->get_row(
-            $wpdb->prepare(
-                'select * from `%1$s` where topic = "%2$s"',
-                $tableName,
-                $topic
-            )
-        );
-    }
+		$tableName = $wpdb->prefix . $this->_table;
+
+		return $wpdb->get_row(
+			$wpdb->prepare(
+				'select * from `%1$s` where topic = "%2$s"',
+				$tableName,
+				$topic
+			)
+		);
+	}
 }

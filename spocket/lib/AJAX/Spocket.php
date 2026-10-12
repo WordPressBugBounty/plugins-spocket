@@ -23,145 +23,155 @@ use \Spocket\Common\Spocket as CommonSpocket;
  * @license  Copyright https://en.wikipedia.org/wiki/Copyright
  * @link     no link
  */
-class Spocket
-{
-
-    /**
-     * The plugin instance.
-     *
-     * @var Plugin
-     */
-    private $_plugin;
+class Spocket {
 
 
-    /**
-     * Sets up initial instance properties
-     *
-     * @param \Spocket\Plugin $plugin This plugin's instance.
-     *
-     * @return void
-     */
-    public function __construct(\Spocket\Plugin $plugin)
-    {
-        $this->_plugin = $plugin;
-
-    }//end __construct()
+	/**
+	 * The plugin instance.
+	 *
+	 * @var Plugin
+	 */
+	private $_plugin;
 
 
-    /**
-     * Gets requirements status.
-     *
-     * @return void
-     */
-    public function getSpocketStatus()
-    {
-        check_ajax_referer('spocket-get-status-nonce', 'nonce');
-        $spocketStatus = CommonSpocket::getSpocketStatus();
-        wp_send_json_success(
-            array(
-            'spocketStatus' => $spocketStatus,
-            )
-        );
-    }//end getSpocketStatus()
+	/**
+	 * Sets up initial instance properties
+	 *
+	 * @param \Spocket\Plugin $plugin This plugin's instance.
+	 *
+	 * @return void
+	 */
+	public function __construct( \Spocket\Plugin $plugin ) {
+		$this->_plugin = $plugin;
+	}//end __construct()
 
 
-    /**
-     * Disconnects the store from Spocket.
-     *
-     * @return void
-     */
-    public function disconnectSpocket()
-    {
-        check_ajax_referer('spocket-disconnect-nonce', 'nonce');
-        $disconnected = CommonSpocket::disconnectSpocket();
-        wp_send_json_success(
-            array(
-            'disconnected' => $disconnected,
-            )
-        );
-    }//end disconnectSpocket()
+	/**
+	 * Ends the request unless the current user may manage the store.
+	 *
+	 * The nonce only proves the request came from the Spocket admin page; it
+	 * is not an authorization check. manage_woocommerce matches the capability
+	 * the Spocket menu page itself requires.
+	 *
+	 * @return void
+	 */
+	private function _authorize() {
+		if (!current_user_can('manage_woocommerce')) {
+			wp_send_json_error(
+				[ 'message' => __('You are not allowed to manage Spocket.', 'spocket') ],
+				403
+			);
+		}
+	}//end _authorize()
 
 
-    /**
-     * Save shop url.
-     *
-     * @return void
-     */
-    public function saveShopUrl()
-    {
-        check_ajax_referer('spocket-save-shop-url-nonce', 'nonce');
-
-        $spocketStatus = CommonSpocket::saveShopUrl();
-
-    }//end saveShopUrl()
-
-
-    /**
-     * Finishes the direct signup process.
-     *
-     * @return void
-     */
-    public function finishDirectSignup()
-    {
-        check_ajax_referer('spocket-direct-signup-nonce', 'nonce');
-
-        if (isset($_POST['storeAuthorizationKey'])) {
-            $storeAuthorizationKey = sanitize_text_field(
-                $_POST['storeAuthorizationKey']
-            );
-            $isStoreAuthorizationKeyCreated = CommonSpocket::finishDirectSignup(
-                $storeAuthorizationKey
-            );
-
-            if ($isStoreAuthorizationKeyCreated) {
-                return wp_send_json_success(['direct_signup_status' => 'created']);
-            }
-        }
-
-        wp_send_json_error(
-            [
-            'direct_signup_status' => 'failed',
-            'message' => 'Please provide your store authorization key'
-            ]
-        );
-
-    }//end finishDirectSignup()
+	/**
+	 * Gets requirements status.
+	 *
+	 * @return void
+	 */
+	public function getSpocketStatus() {
+		check_ajax_referer('spocket-get-status-nonce', 'nonce');
+		$this->_authorize();
+		$spocketStatus = CommonSpocket::getSpocketStatus();
+		wp_send_json_success(
+			array(
+			'spocketStatus' => $spocketStatus,
+			)
+		);
+	}//end getSpocketStatus()
 
 
-    /**
-     * Some comment.
-     *
-     * @return void
-     */
-    public function removeStoreAuthorizationKeyFromRequest()
-    {
-        check_ajax_referer('spocket-remove-store-authorization-key-nonce', 'nonce');
-        update_option('spocket_store_authorization_key', '', false);
-
-        if (get_option('spocket_store_authorization_key') === '') {
-            return wp_send_json_success(['status' => 'removed']);
-        }
-
-    }//end removeStoreAuthorizationKeyFromRequest()
-
-
-    /**
-     * Registeres and enqueues assets.
-     *
-     * @return void
-     */
-    public function run()
-    {
-        add_action('wp_ajax_spocket_status', [$this, 'getSpocketStatus']);
-        add_action('wp_ajax_spocket_disconnect', [$this, 'disconnectSpocket']);
-        add_action('wp_ajax_spocket_save_shop_url', [$this, 'saveShopUrl']);
-        add_action('wp_ajax_spocket_direct_signup', [$this, 'finishDirectSignup']);
-        add_action(
-            'wp_ajax_spocket_remove_store_authorization_key_from_request',
-            [$this, 'removeStoreAuthorizationKeyFromRequest']
-        );
-
-    }//end run()
+	/**
+	 * Disconnects the store from Spocket.
+	 *
+	 * @return void
+	 */
+	public function disconnectSpocket() {
+		check_ajax_referer('spocket-disconnect-nonce', 'nonce');
+		$this->_authorize();
+		$disconnected = CommonSpocket::disconnectSpocket();
+		wp_send_json_success(
+			array(
+			'disconnected' => $disconnected,
+			)
+		);
+	}//end disconnectSpocket()
 
 
+	/**
+	 * Save shop url.
+	 *
+	 * @return void
+	 */
+	public function saveShopUrl() {
+		check_ajax_referer('spocket-save-shop-url-nonce', 'nonce');
+		$this->_authorize();
+
+		$spocketStatus = CommonSpocket::saveShopUrl();
+	}//end saveShopUrl()
+
+
+	/**
+	 * Finishes the direct signup process.
+	 *
+	 * @return void
+	 */
+	public function finishDirectSignup() {
+		check_ajax_referer('spocket-direct-signup-nonce', 'nonce');
+		$this->_authorize();
+
+		if (isset($_POST['storeAuthorizationKey'])) {
+			$storeAuthorizationKey = sanitize_text_field(
+				$_POST['storeAuthorizationKey']
+			);
+			$isStoreAuthorizationKeyCreated = CommonSpocket::finishDirectSignup(
+				$storeAuthorizationKey
+			);
+
+			if ($isStoreAuthorizationKeyCreated) {
+				return wp_send_json_success([ 'direct_signup_status' => 'created' ]);
+			}
+		}
+
+		wp_send_json_error(
+			[
+			'direct_signup_status' => 'failed',
+			'message' => 'Please provide your store authorization key',
+			]
+		);
+	}//end finishDirectSignup()
+
+
+	/**
+	 * Some comment.
+	 *
+	 * @return void
+	 */
+	public function removeStoreAuthorizationKeyFromRequest() {
+		check_ajax_referer('spocket-remove-store-authorization-key-nonce', 'nonce');
+		$this->_authorize();
+		update_option('spocket_store_authorization_key', '', false);
+
+		if (get_option('spocket_store_authorization_key') === '') {
+			return wp_send_json_success([ 'status' => 'removed' ]);
+		}
+	}//end removeStoreAuthorizationKeyFromRequest()
+
+
+	/**
+	 * Registeres and enqueues assets.
+	 *
+	 * @return void
+	 */
+	public function run() {
+		add_action('wp_ajax_spocket_status', [ $this, 'getSpocketStatus' ]);
+		add_action('wp_ajax_spocket_disconnect', [ $this, 'disconnectSpocket' ]);
+		add_action('wp_ajax_spocket_save_shop_url', [ $this, 'saveShopUrl' ]);
+		add_action('wp_ajax_spocket_direct_signup', [ $this, 'finishDirectSignup' ]);
+		add_action(
+			'wp_ajax_spocket_remove_store_authorization_key_from_request',
+			[ $this, 'removeStoreAuthorizationKeyFromRequest' ]
+		);
+	}//end run()
 }//end class

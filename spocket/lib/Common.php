@@ -21,36 +21,34 @@ namespace Spocket;
  * @license  Copyright https://en.wikipedia.org/wiki/Copyright
  * @link     no link
  */
-class Common
-{
+class Common {
 
-    /**
-     * The plugin instance.
-     *
-     * @var Plugin
-     */
-    private $_plugin;
 
-    /**
-     * Sets up initial instance properties
-     *
-     * @param \Spocket\Plugin $plugin This plugin's instance.
-     *
-     * @return void
-     */
-    public function __construct( \Spocket\Plugin $plugin)
-    {
-        $this->_plugin = $plugin;
-    }
+	/**
+	 * The plugin instance.
+	 *
+	 * @var Plugin
+	 */
+	private $_plugin;
 
-    /**
-     * Runs the class.
-     *
-     * @return void
-     */
-    public function run()
-    {
-        $CommonSpocket = new \Spocket\Common\Spocket($this->_plugin);
-        $CommonSpocket->run();
-    }
+	/**
+	 * Sets up initial instance properties
+	 *
+	 * @param \Spocket\Plugin $plugin This plugin's instance.
+	 *
+	 * @return void
+	 */
+	public function __construct( \Spocket\Plugin $plugin ) {
+		$this->_plugin = $plugin;
+	}
+
+	/**
+	 * Runs the class.
+	 *
+	 * @return void
+	 */
+	public function run() {
+		$CommonSpocket = new \Spocket\Common\Spocket($this->_plugin);
+		$CommonSpocket->run();
+	}
 }

@@ -69,7 +69,7 @@ services:
 
   composer:
     restart: 'no'
-    image: composer
+    image: composer:1.10.10
     working_dir: /var/www/html/wp-content/plugins/spocket
     command: install
     volumes:

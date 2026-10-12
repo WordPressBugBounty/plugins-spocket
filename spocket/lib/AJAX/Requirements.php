@@ -23,54 +23,70 @@ use \Spocket\Common\Requirements as CommonRequirements;
  * @license  Copyright https://en.wikipedia.org/wiki/Copyright
  * @link     no link
  */
-class Requirements
-{
+class Requirements {
 
-    /**
-     * The plugin instance.
-     *
-     * @var Plugin
-     */
-    private $_plugin;
 
-    /**
-     * Sets up initial instance properties
-     *
-     * @param \Spocket\Plugin $plugin This plugin's instance.
-     *
-     * @return void
-     */
-    public function __construct( \Spocket\Plugin $plugin)
-    {
-        $this->_plugin = $plugin;
-    }
+	/**
+	 * The plugin instance.
+	 *
+	 * @var Plugin
+	 */
+	private $_plugin;
 
-    /**
-     * Gets requirements status.
-     *
-     * @return void
-     */
-    public function getRequirementsStatus()
-    {
-        check_ajax_referer('spocket-get-requirements-status-nonce', 'nonce');
-        $requirementsStatus = CommonRequirements::getRequirementsStatus();
-        wp_send_json_success(
-            array(
-            'requirementsStatus' => $requirementsStatus,
-            )
-        );
-    }
+	/**
+	 * Sets up initial instance properties
+	 *
+	 * @param \Spocket\Plugin $plugin This plugin's instance.
+	 *
+	 * @return void
+	 */
+	public function __construct( \Spocket\Plugin $plugin ) {
+		$this->_plugin = $plugin;
+	}
 
-    /**
-     * Registeres and enqueues assets.
-     *
-     * @return void
-     */
-    public function run()
-    {
-        add_action(
-            'wp_ajax_spocket_requirements_status',
-            [$this, 'getRequirementsStatus']
-        );
-    }
+	/**
+	 * Ends the request unless the current user may manage the store.
+	 *
+	 * The nonce only proves the request came from the Spocket admin page; it
+	 * is not an authorization check. manage_woocommerce matches the capability
+	 * the Spocket menu page itself requires.
+	 *
+	 * @return void
+	 */
+	private function _authorize() {
+		if (!current_user_can('manage_woocommerce')) {
+			wp_send_json_error(
+				[ 'message' => __('You are not allowed to manage Spocket.', 'spocket') ],
+				403
+			);
+		}
+	}
+
+	/**
+	 * Gets requirements status.
+	 *
+	 * @return void
+	 */
+	public function getRequirementsStatus() {
+		check_ajax_referer('spocket-get-requirements-status-nonce', 'nonce');
+		$this->_authorize();
+		$requirementsStatus = CommonRequirements::getRequirementsStatus();
+		wp_send_json_success(
+			array(
+			'requirementsStatus' => $requirementsStatus,
+			)
+		);
+	}
+
+	/**
+	 * Registeres and enqueues assets.
+	 *
+	 * @return void
+	 */
+	public function run() {
+		add_action(
+			'wp_ajax_spocket_requirements_status',
+			[ $this, 'getRequirementsStatus' ]
+		);
+	}
 }

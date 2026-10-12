@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<ruleset name="Spocket formatting baseline">
+	<description>
+		Formatting-only PHPCS ruleset for the lint/style baseline.
+
+		It inherits phpcs.xml so it keeps the project's WordPress conventions
+		(tab indent, brace placement, concatenation spacing), then narrows the
+		run to sniffs whose fixes only change whitespace and layout. Inheriting
+		matters: a standalone ruleset falls back to PSR-style 4-space defaults
+		and would reindent the whole tree away from WPCS.
+
+		Why this is not just phpcs.xml: phpcs.xml is the full WPCS/WooCommerce
+		review standard. Most of what it reports is either not auto-fixable
+		(missing docblock tags, unsanitised input) or is a token-level rewrite
+		rather than layout, so running phpcbf with it would put
+		behaviour-adjacent edits into a formatting-only commit.
+
+		The baseline commit was verified token-by-token against the pre-format
+		tree (token_get_all with whitespace and comments filtered): all 15
+		files came back identical except for 10 trailing commas added by
+		NormalizedArrays.Arrays.CommaAfterLast, which are inert in PHP.
+
+		Deliberately EXCLUDED, for the behaviour-changing follow-up PR:
+		  Universal.Arrays.DisallowShortArraySyntax  (9)  [] -> array()
+		  Modernize.FunctionCalls.Dirname            (5)  dirname(__FILE__) -> __DIR__
+		  Universal.UseStatements.NoLeadingBackslash (2)  use \Foo; -> use Foo;
+		All three are semantically identical rewrites, but they edit tokens
+		rather than layout, so they do not belong in a formatting commit.
+	</description>
+
+	<!-- Inherit the project's WordPress standard and its config. -->
+	<rule ref="./phpcs.xml" />
+
+	<!-- Narrow the run to layout-only sniffs. -->
+	<arg name="sniffs" value="Generic.WhiteSpace.DisallowSpaceIndent,Generic.WhiteSpace.ScopeIndent,Generic.Functions.OpeningFunctionBraceKernighanRitchie,Generic.Classes.OpeningBraceSameLine,NormalizedArrays.Arrays.ArrayBraceSpacing,NormalizedArrays.Arrays.CommaAfterLast,Squiz.Functions.FunctionDeclarationArgumentSpacing,Squiz.Functions.MultiLineFunctionDeclaration,Squiz.Strings.ConcatenationSpacing,PSR2.Methods.FunctionClosingBrace,PSR2.Classes.ClassDeclaration,PSR2.Files.EndFileNewline" />
+
+	<!--
+		PSR2.Classes.ClassDeclaration carries two message codes and only one of
+		them is wanted here:
+		  CloseBraceAfterBody  keep. This is what the baseline actually fixed.
+		  OpenBraceNewLine     excluded below. It demands the class brace on the
+		                       line AFTER the declaration, which contradicts
+		                       Generic.Classes.OpeningBraceSameLine above and the
+		                       WordPress convention this project follows.
+		WordPress-Extra already suppresses OpenBraceNewLine, so today it reports
+		nothing, but relying on that is fragile. Excluding it explicitly means the
+		two brace sniffs can never fight, whatever the parent standard does.
+	-->
+	<rule ref="PSR2.Classes.ClassDeclaration">
+		<exclude name="PSR2.Classes.ClassDeclaration.OpenBraceNewLine" />
+	</rule>
+
+	<!-- PHP only: WPCS 3.x no longer sniffs JS; eslint/stylelint own src/. -->
+	<arg name="extensions" value="php" />
+</ruleset>

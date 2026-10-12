@@ -21,38 +21,36 @@ namespace Spocket;
  * @license  Copyright https://en.wikipedia.org/wiki/Copyright
  * @link     no link
  */
-class Backend
-{
+class Backend {
 
-    /**
-     * The plugin instance.
-     *
-     * @var Plugin
-     */
-    private $_plugin;
 
-    /**
-     * Sets up initial instance properties
-     *
-     * @param \Spocket\Plugin $plugin This plugin's instance.
-     *
-     * @return void
-     */
-    public function __construct( \Spocket\Plugin $plugin)
-    {
-        $this->_plugin = $plugin;
-    }
+	/**
+	 * The plugin instance.
+	 *
+	 * @var Plugin
+	 */
+	private $_plugin;
 
-    /**
-     * Runs the class.
-     *
-     * @return void
-     */
-    public function run()
-    {
-        $BackendAssets = new \Spocket\Backend\Assets($this->_plugin);
-        $BackendAssets->run();
-        $BackendScreen = new \Spocket\Backend\Screen($this->_plugin);
-        $BackendScreen->run();
-    }
+	/**
+	 * Sets up initial instance properties
+	 *
+	 * @param \Spocket\Plugin $plugin This plugin's instance.
+	 *
+	 * @return void
+	 */
+	public function __construct( \Spocket\Plugin $plugin ) {
+		$this->_plugin = $plugin;
+	}
+
+	/**
+	 * Runs the class.
+	 *
+	 * @return void
+	 */
+	public function run() {
+		$BackendAssets = new \Spocket\Backend\Assets($this->_plugin);
+		$BackendAssets->run();
+		$BackendScreen = new \Spocket\Backend\Screen($this->_plugin);
+		$BackendScreen->run();
+	}
 }

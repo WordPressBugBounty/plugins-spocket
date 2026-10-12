@@ -1,8 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const StyleLintPlugin = require('stylelint-webpack-plugin');
 const fs = require('fs');
 const autoprefixer = require('autoprefixer');
 const { VueLoaderPlugin } = require('vue-loader');
@@ -32,50 +31,29 @@ module.exports = () => {
             cacheDirectory: true,
           },
         },
-        {
-          test: /\.js|\.vue$/,
-          use: [
-            {
-              loader: 'eslint-loader',
-              options: {
-                configFile: path.resolve(__dirname, '.eslintrc.json'),
-              },
-            },
-          ],
-          enforce: 'pre',
-          exclude: /node_modules/,
-        },
       ],
     },
     plugins: [
       new Dotenv({
         path: path.resolve(process.cwd(), '.env.development')
       }),
-      new CleanWebpackPlugin(['dist'], {
-        root: path.resolve(__dirname, './'),
-        verbose: true,
-      }),
+      new CleanWebpackPlugin(),
       new webpack.LoaderOptionsPlugin({
         options: {
           postcss: [autoprefixer()],
           context: '/',
         },
       }),
-      new StyleLintPlugin({
-        configFile: path.resolve(__dirname, '.stylelintrc.json'),
-        syntax: 'scss',
-        files: ['**/*.s?(a|c)ss', '**/*.vue'],
-        emitErrors: false,
-        lintDirtyModulesOnly: process.env.NODE_ENV !== 'production',
-      }),
       new VueLoaderPlugin(),
 
-      new CopyWebpackPlugin([
-        {from: 'src/img', to: 'images'},
-        {from: 'src/css/toplevel-menu.css', to: 'css'}
-      ])
+      new CopyWebpackPlugin({
+        patterns: [
+          {from: 'src/img', to: 'images'},
+          {from: 'src/css/toplevel-menu.css', to: 'css'}
+        ]
+      })
     ],
-    devtool: 'eval-source-map',
+    devtool: process.env.NODE_ENV === 'production' ? 'source-map' : 'eval-source-map',
     externals: {
       jquery: 'jQuery',
     },
@@ -113,17 +91,15 @@ module.exports = () => {
       ],
     });
     config.module.rules.push({
-      test: /\.png|\.jpg|\.gif|\.svg|\.eot|\.ttf|\.woff|\.woff2$/,
+      test: /^\.(png|jpg|gif|svg|eot|ttf|woff|woff2)$/,
       loader: 'file-loader',
-      query: {
+      options: {
         name: '[hash].[ext]',
         outputPath: 'static/',
         publicPath: '../static/',
       },
       exclude: /node_modules/,
     });
-
-    config.devtool = '#source-map';
 
     config.plugins = (config.plugins || []).concat([
       new MiniCssExtractPlugin({
@@ -169,9 +145,9 @@ module.exports = () => {
       ],
     });
     config.module.rules.push({
-      test: /\.png|\.jpg|\.gif|\.svg|\.eot|\.ttf|\.woff|\.woff2$/,
+      test: /^\.(png|jpg|gif|svg|eot|ttf|woff|woff2)$/,
       loader: 'file-loader',
-      query: {
+      options: {
         name: '[hash].[ext]',
       },
       exclude: /node_modules/,
@@ -180,7 +156,7 @@ module.exports = () => {
     config.devServer = {
       hot: true,
       host: '0.0.0.0',
-      disableHostCheck: true,
+      allowedHosts: ['*'],
       port: 8081,
       headers: {
         'Access-Control-Allow-Origin': '*',

@@ -2,7 +2,7 @@
 Tags: woocommerce, e-commerce, ecommerce, dropship, dropshipping, dropshipper, drop ship, drop shipping, drop shipper
 Requires at least: 4.4
 Tested up to: 6.3
-Stable tag: 1.7.9
+Stable tag: 1.8.0
 
 Find fast shipping products from reliable suppliers, import them to [your WooCommerce store](https://www.spocket.co/for-woocommerce) and manage your orders automatically: all for free.
 

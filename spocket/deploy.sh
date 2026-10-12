@@ -23,8 +23,11 @@ GITPATH="$CURRENTDIR" # this file should be in the base of your git repository
 
 # svn config
 SVNPATH="/tmp/$PLUGINSLUG" # path to a temp SVN repo. No trailing slash required and don't add trunk.
-SVNURL="HTTP://plugins.svn.wordpress.org/$PLUGINSLUG/" # Remote SVN repo on WordPress.org, with no trailing slash
+SVNURL="https://plugins.svn.wordpress.org/$PLUGINSLUG/" # Remote SVN repo on WordPress.org, with no trailing slash
 SVNUSER="tomspocket" # your svn username
+
+# The release commit is made on the current branch but only master is pushed.
+if [ "$(git -C "$GITPATH" rev-parse --abbrev-ref HEAD)" != "master" ]; then echo "Not on master. Exiting...."; exit 1; fi
 
 # Let's begin...
 echo ".........................................."
@@ -84,7 +87,8 @@ git push origin master
 git push origin master --tags
 
 echo "Building asset files"
-npm run build
+# Without this the SVN trunk keeps its old dist/ and ships it next to the new PHP.
+npm run build || { echo "Build failed. Exiting...."; exit 1; }
 
 echo
 echo "Creating local copy of SVN repo ..."
